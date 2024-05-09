@@ -51,6 +51,8 @@
 "Enable universal back and forward" = "Povoliť univerzálny posun dozadu a dopredu";
 "Convert the back and forward side buttons to swiping gestures to allow universal back and forward functionality." = "Premeňte bočné tlačidlá dozadu a dopredu na gestá posúvania, aby ste umožnili univerzálne funkcie dozadu a dopredu.";
 "Switch primary and secondary buttons" = "Prepnúť primárne a sekundárne tlačidlá";
+"Map keyboard keys to mouse buttons" = "Map keyboard keys to mouse buttons";
+"Map keyboard keys A-Z and F1-F6 to mouse buttons 1 to 32. This brings compatibility for mice that emit non-standard events." = "Map keyboard keys A-Z and F1-F6 to mouse buttons 1 to 32. This brings compatibility for mice that emit non-standard events.";
 "Debounce button clicks" = "Čas odozvy kliknutia na tlačidlá";
 "Ignore rapid clicks within a certain time period." = "Ignorovať rýchle kliknutia v určitom časovom období.";
 "ms" = "ms";

@@ -51,6 +51,8 @@
 "Enable universal back and forward" = "Activați funcția universală înapoi și înainte";
 "Convert the back and forward side buttons to swiping gestures to allow universal back and forward functionality." = "Convertește butoanele din spate și din față lateral la gesturi de glisare pentru a permite funcționalitatea universală înapoi și înainte.";
 "Switch primary and secondary buttons" = "Switch primary and secondary buttons";
+"Map keyboard keys to mouse buttons" = "Map keyboard keys to mouse buttons";
+"Map keyboard keys A-Z and F1-F6 to mouse buttons 1 to 32. This brings compatibility for mice that emit non-standard events." = "Map keyboard keys A-Z and F1-F6 to mouse buttons 1 to 32. This brings compatibility for mice that emit non-standard events.";
 "Debounce button clicks" = "Debounce button clicks";
 "Ignore rapid clicks within a certain time period." = "Ignore rapid clicks within a certain time period.";
 "ms" = "ms";

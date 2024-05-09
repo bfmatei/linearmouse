@@ -51,6 +51,8 @@
 "Enable universal back and forward" = "システム全般の戻る・進むボタンを有効にする";
 "Convert the back and forward side buttons to swiping gestures to allow universal back and forward functionality." = "戻る・進むボタンをスワイプジェスチャーに変換し、システム全般における戻る・進む機能を行えるようにします。";
 "Switch primary and secondary buttons" = "プライマリボタンとセカンダリボタンを切り替える";
+"Map keyboard keys to mouse buttons" = "Map keyboard keys to mouse buttons";
+"Map keyboard keys A-Z and F1-F6 to mouse buttons 1 to 32. This brings compatibility for mice that emit non-standard events." = "Map keyboard keys A-Z and F1-F6 to mouse buttons 1 to 32. This brings compatibility for mice that emit non-standard events.";
 "Debounce button clicks" = "チャタリング防止";
 "Ignore rapid clicks within a certain time period." = "一定時間内での素早いクリックを無視します。";
 "ms" = "ms";

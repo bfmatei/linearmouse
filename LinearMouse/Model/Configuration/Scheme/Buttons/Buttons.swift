@@ -18,6 +18,8 @@ extension Scheme {
 
         var switchPrimaryButtonAndSecondaryButtons: Bool?
 
+        var mapKeyboardKeysToMouseButtons: Bool?
+
         @ImplicitOptional var clickDebouncing: ClickDebouncing
     }
 }
@@ -34,6 +36,10 @@ extension Scheme.Buttons {
 
         if let switchPrimaryButtonAndSecondaryButtons = switchPrimaryButtonAndSecondaryButtons {
             buttons.switchPrimaryButtonAndSecondaryButtons = switchPrimaryButtonAndSecondaryButtons
+        }
+
+        if let mapKeyboardKeysToMouseButtons = mapKeyboardKeysToMouseButtons {
+            buttons.mapKeyboardKeysToMouseButtons = mapKeyboardKeysToMouseButtons
         }
 
         if let clickDebouncing = $clickDebouncing {
