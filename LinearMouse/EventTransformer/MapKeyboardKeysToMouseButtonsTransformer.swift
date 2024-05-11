@@ -4,7 +4,7 @@
 import Foundation
 import os.log
 import KeyKit
-import PointerKit
+import InputKit
 
 class MapKeyboardKeysToMouseButtonsTransformer: EventTransformer {
     static let log = OSLog(
@@ -17,7 +17,11 @@ class MapKeyboardKeysToMouseButtonsTransformer: EventTransformer {
         CGEventType.keyDown,
     ]
 
-    init() {}
+    let device: Device?
+
+    init(_ device: Device?) {
+        self.device = device
+    }
 
     func transform(_ event: CGEvent) -> CGEvent? {
         let keyboardEventView = KeyboardEventView(event)
@@ -37,7 +41,7 @@ class MapKeyboardKeysToMouseButtonsTransformer: EventTransformer {
             return nil
         }
 
-        mouseEvent.post(tap: .cgSessionEventTap)
+        mouseEvent.post(tap: .cghidEventTap)
 
         let mouseEventView = MouseEventView(mouseEvent)
 
@@ -49,11 +53,34 @@ class MapKeyboardKeysToMouseButtonsTransformer: EventTransformer {
             mouseEventView.mouseButtonDescription
         )
 
+        if (DeviceManager.shared.lastActiveDeviceRef?.value != device) {
+            DeviceManager.shared.lastActiveDeviceRef = .init(device!)
+            os_log("""
+                   Last active device changed: %{public}@, category=%{public}@ \
+                   (Reason: Mapped key to button)
+                   """,
+                   log: Self.log, type: .info,
+                   String(describing: device),
+                   String(describing: device!.category))
+        }
+
         return nil
     }
 
     private func shouldHandleEvent(_ view: KeyboardEventView) -> Bool {
+        guard let device = self.device else {
+            return false
+        }
+
         guard interestedKeyboardEvents.contains(view.type) else {
+            return false
+        }
+
+        guard let eventDevice = DeviceManager.shared.inputDeviceFromCGEvent(view.event) else {
+            return false
+        }
+
+        guard device.locationID == eventDevice.locationID else {
             return false
         }
 

@@ -3,15 +3,15 @@
 
 import Foundation
 import ObservationToken
-import PointerKitC
+import InputKitC
 
-public final class PointerDeviceManager {
+public final class InputDeviceManager {
     private var eventSystemClient: IOHIDEventSystemClient?
 
-    public typealias DeviceAddedClosure = (PointerDeviceManager, PointerDevice) -> Void
-    public typealias DeviceRemovedClosure = (PointerDeviceManager, PointerDevice) -> Void
-    public typealias PropertyChangedClosure = (PointerDeviceManager) -> Void
-    public typealias EventReceivedClosure = (PointerDeviceManager, PointerDevice, IOHIDEvent) -> Void
+    public typealias DeviceAddedClosure = (InputDeviceManager, InputDevice) -> Void
+    public typealias DeviceRemovedClosure = (InputDeviceManager, InputDevice) -> Void
+    public typealias PropertyChangedClosure = (InputDeviceManager) -> Void
+    public typealias EventReceivedClosure = (InputDeviceManager, InputDevice, IOHIDEvent) -> Void
 
     private var observations = (
         deviceAdded: [UUID: DeviceAddedClosure](),
@@ -20,10 +20,10 @@ public final class PointerDeviceManager {
         eventReceived: [UUID: EventReceivedClosure]()
     )
 
-    private var serviceClientToPointerDevice = [IOHIDServiceClient: PointerDevice]()
+    private var serviceClientToInputDevice = [IOHIDServiceClient: InputDevice]()
 
-    public var devices: [PointerDevice] {
-        Array(serviceClientToPointerDevice.values)
+    public var devices: [InputDevice] {
+        Array(serviceClientToInputDevice.values)
     }
 
     public init() {}
@@ -31,7 +31,7 @@ public final class PointerDeviceManager {
 
 // MARK: Observation API
 
-public extension PointerDeviceManager {
+public extension InputDeviceManager {
     func observeDeviceAdded(using closure: @escaping DeviceAddedClosure) -> ObservationToken {
         let id = observations.deviceAdded.insert(closure)
 
@@ -68,9 +68,9 @@ public extension PointerDeviceManager {
 
 // MARK: Device observation
 
-extension PointerDeviceManager {
+extension InputDeviceManager {
     private enum ObservationMatches {
-        static var mouseOrPointer: CFArray {
+        static var input: CFArray {
             let usageMouse = [
                 kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
                 kIOHIDDeviceUsageKey: kHIDUsage_GD_Mouse
@@ -81,7 +81,17 @@ extension PointerDeviceManager {
                 kIOHIDDeviceUsageKey: kHIDUsage_GD_Pointer
             ] as CFDictionary
 
-            return [usageMouse, usagePointer] as CFArray
+            let usageKeyboard = [
+                kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
+                kIOHIDDeviceUsageKey: kHIDUsage_GD_Keyboard
+            ] as CFDictionary
+
+            let usageKeypad = [
+                kIOHIDDeviceUsagePageKey: kHIDPage_GenericDesktop,
+                kIOHIDDeviceUsageKey: kHIDUsage_GD_Keypad
+            ] as CFDictionary
+
+            return [usageMouse, usagePointer, usageKeyboard, usageKeypad] as CFArray
         }
     }
 
@@ -90,7 +100,7 @@ extension PointerDeviceManager {
             guard let target = target else { return }
             guard let property = property else { return }
 
-            let this = Unmanaged<PointerDeviceManager>.fromOpaque(target).takeUnretainedValue()
+            let this = Unmanaged<InputDeviceManager>.fromOpaque(target).takeUnretainedValue()
             this.propertyChangedCallback(property as String, value)
         }
 
@@ -109,7 +119,7 @@ extension PointerDeviceManager {
         self.eventSystemClient = eventSystemClient
 
         IOHIDEventSystemClientSetMatchingMultiple(eventSystemClient,
-                                                  ObservationMatches.mouseOrPointer)
+                                                  ObservationMatches.input)
         IOHIDEventSystemClientRegisterDeviceMatchingBlock(eventSystemClient,
                                                           serviceMatchingCallback,
                                                           nil,
@@ -178,7 +188,7 @@ extension PointerDeviceManager {
         guard let client = client else { return }
         guard let event = event else { return }
 
-        guard let device = serviceClientToPointerDevice[client] else { return }
+        guard let device = serviceClientToInputDevice[client] else { return }
 
         for (_, callback) in observations.eventReceived {
             callback(self, device, event)
@@ -192,11 +202,11 @@ extension PointerDeviceManager {
     }
 
     private func addDevice(forClient client: IOHIDServiceClient) {
-        guard serviceClientToPointerDevice[client] == nil else { return }
+        guard serviceClientToInputDevice[client] == nil else { return }
 
-        let device = PointerDevice(client)
+        let device = InputDevice(client)
 
-        serviceClientToPointerDevice[client] = device
+        serviceClientToInputDevice[client] = device
 
         for (_, callback) in observations.deviceAdded {
             callback(self, device)
@@ -206,26 +216,30 @@ extension PointerDeviceManager {
     }
 
     private func removeDevice(forClient client: IOHIDServiceClient) {
-        guard let device = serviceClientToPointerDevice[client] else { return }
+        guard let pointerDevice = serviceClientToInputDevice[client] else { return }
 
-        removeDevice(device)
+        removeDevice(pointerDevice)
     }
 
-    private func removeDevice(_ device: PointerDevice) {
-        serviceClientToPointerDevice.removeValue(forKey: device.client)
+    private func removeDevice(_ device: InputDevice) {
+        serviceClientToInputDevice.removeValue(forKey: device.client)
 
         for (_, callback) in observations.deviceRemoved {
             callback(self, device)
         }
     }
 
-    public func pointerDeviceFromIOHIDEvent(_ ioHidEvent: IOHIDEvent) -> PointerDevice? {
+    public func inputDeviceFromIOHIDEvent(_ ioHidEvent: IOHIDEvent) -> InputDevice? {
         guard let eventSystemClient = eventSystemClient else {
             return nil
         }
 
         let senderID = IOHIDEventGetSenderID(ioHidEvent)
         let serviceClient = IOHIDEventSystemClientCopyServiceForRegistryID(eventSystemClient, senderID)
-        return serviceClient.flatMap { serviceClientToPointerDevice[$0] }
+        return serviceClient.flatMap { serviceClientToInputDevice[$0] }
+    }
+
+    public func inputDevicesFromLocationID(_ locationID: Int) -> [InputDevice] {
+        devices.filter({ $0.locationID == locationID })
     }
 }

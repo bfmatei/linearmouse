@@ -101,7 +101,7 @@ class EventTransformerManager {
         var eventTransformer: [EventTransformer] = []
 
         if scheme.buttons.mapKeyboardKeysToMouseButtons == true {
-            eventTransformer.append(MapKeyboardKeysToMouseButtonsTransformer())
+            eventTransformer.append(MapKeyboardKeysToMouseButtonsTransformer(device))
         }
 
         if let reverse = scheme.scrolling.$reverse {

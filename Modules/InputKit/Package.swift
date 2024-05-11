@@ -4,11 +4,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "PointerKit",
+    name: "InputKit",
     products: [
         .library(
-            name: "PointerKit",
-            targets: ["PointerKit"]
+            name: "InputKit",
+            targets: ["InputKit"]
         )
     ],
     dependencies: [
@@ -16,19 +16,19 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "PointerKitC",
+            name: "InputKitC",
             dependencies: []
         ),
         .target(
-            name: "PointerKit",
+            name: "InputKit",
             dependencies: [
-                "ObservationToken",
-                "PointerKitC"
+                "InputKitC",
+                "ObservationToken"
             ]
         ),
         .testTarget(
-            name: "PointerKitTests",
-            dependencies: ["PointerKit"]
+            name: "InputKitTests",
+            dependencies: ["InputKit"]
         )
     ]
 )

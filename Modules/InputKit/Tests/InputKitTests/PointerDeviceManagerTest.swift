@@ -2,10 +2,10 @@
 // Copyright (c) 2021-2024 LinearMouse
 
 import ObservationToken
-@testable import PointerKit
+@testable import InputKit
 import XCTest
 
-class PointerDeviceManagerTest: XCTestCase {
+class InputDeviceManagerTest: XCTestCase {
     class Scope {}
 
     struct WeakRef<T: AnyObject> {
@@ -16,7 +16,7 @@ class PointerDeviceManagerTest: XCTestCase {
         var tokenRef = WeakRef<ObservationToken>()
 
         do {
-            let manager = PointerDeviceManager()
+            let manager = InputDeviceManager()
 
             // Tieing to manager itself would cause a reference cycle
             let scope = Scope()
@@ -54,7 +54,7 @@ class PointerDeviceManagerTest: XCTestCase {
     }
 
     func testPointerResolutionAndPointerAcceleration() {
-        let manager = PointerDeviceManager()
+        let manager = InputDeviceManager()
 
         manager.startObservation()
 

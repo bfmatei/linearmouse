@@ -2,7 +2,7 @@
 // Copyright (c) 2021-2024 LinearMouse
 
 import Combine
-import PointerKit
+import InputKit
 import SwiftUI
 
 class DeviceIndicatorState: ObservableObject {

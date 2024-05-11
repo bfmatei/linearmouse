@@ -1,7 +1,7 @@
 // MIT License
 // Copyright (c) 2021-2024 LinearMouse
 
-import PointerKitC
+import InputKitC
 
 extension IOHIDServiceClient {
     func getProperty<T>(_ key: String) -> T? {
