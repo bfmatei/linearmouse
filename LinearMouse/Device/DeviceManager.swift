@@ -195,9 +195,7 @@ class DeviceManager: ObservableObject {
             return lastActiveDeviceRef?.value
         }
 
-        return devices.first(where: { $0.locationID == inputDevice.locationID }) else {
-            return lastActiveDeviceRef?.value
-        }
+        return devices.first(where: { $0.locationID == inputDevice.locationID }) ?? lastActiveDeviceRef?.value
     }
 
     func inputDevicesFromLocationID(_ locationID: Int) -> [InputDevice] {
