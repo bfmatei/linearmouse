@@ -6,10 +6,21 @@ import CoreGraphics
 // - SeeAlso:
 // https://github.com/WebKit/WebKit/blob/ab59722dc517c798f7d88bfe4dcb7b33b8473e7e/Tools/TestRunnerShared/spi/CoreGraphicsTestSPI.h#L39
 extension CGEventField {
+    static let gestureUnixProcessID = Self(rawValue: 41)!
     static let gestureHIDType = Self(rawValue: 110)!
     static let gestureZoomValue = Self(rawValue: 113)!
     static let gestureSwipeValue = Self(rawValue: 115)!
+    static let gestureDockWeirdType = Self(rawValue: 119)!
+    static let gestureDockType = Self(rawValue: 123)!
+    static let gestureDockOriginOffset = Self(rawValue: 124)!
+    static let gestureExitSpeed = Self(rawValue: 129)!
+    static let gestureExitSpeed2 = Self(rawValue: 130)!
     static let gesturePhase = Self(rawValue: 132)!
+    static let gesturePhase2 = Self(rawValue: 134)!
+    static let gestureDockOriginOffset2 = Self(rawValue: 135)!
+    static let gestureDockInverted = Self(rawValue: 136)!
+    static let gestureDockWeirdType2 = Self(rawValue: 139)!
+    static let gestureDockType2 = Self(rawValue: 165)!
 }
 
 // - SeeAlso:
@@ -35,6 +46,7 @@ enum IOHIDEventType: UInt32 {
     case digitizer = 11
     case navigationSwipe = 16
     case zoomToggle = 22
+    case dock = 23
     case force = 32
 }
 
@@ -48,4 +60,12 @@ public enum IOHIDSwipeMask: UInt32 {
     case scaleContract = 0x20
     case rotateCW = 0x40
     case rotateCCW = 0x80
+}
+
+// - SeeAlso:
+// https://github.com/noah-nuebling/mac-mouse-fix/blob/7a35c03b90933dc5b8176893f932a0f937fde04a/Helper/Core/Touch/TouchSimulator.h#L17
+public enum IOHIDDockSwipeType: UInt32 {
+    case horizontal = 1
+    case vertical = 2
+    case pinch = 3
 }
