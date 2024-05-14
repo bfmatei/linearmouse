@@ -3,14 +3,14 @@
 
 import Foundation
 import ObservationToken
-import PointerKitC
+import InputKitC
 
-public class PointerDevice {
+public class InputDevice {
     let client: IOHIDServiceClient
     let device: IOHIDDevice?
 
-    public typealias InputValueClosure = (PointerDevice, IOHIDValue) -> Void
-    public typealias InputReportClosure = (PointerDevice, Data) -> Void
+    public typealias InputValueClosure = (InputDevice, IOHIDValue) -> Void
+    public typealias InputReportClosure = (InputDevice, Data) -> Void
 
     private var inputReportCallbackRegistered = false
 
@@ -24,7 +24,7 @@ public class PointerDevice {
         guard let context = context else {
             return
         }
-        let this = Unmanaged<PointerDevice>.fromOpaque(context).takeUnretainedValue()
+        let this = Unmanaged<InputDevice>.fromOpaque(context).takeUnretainedValue()
 
         this.inputValueCallback(value)
     }
@@ -33,7 +33,7 @@ public class PointerDevice {
         guard let context = context else {
             return
         }
-        let this = Unmanaged<PointerDevice>.fromOpaque(context).takeUnretainedValue()
+        let this = Unmanaged<InputDevice>.fromOpaque(context).takeUnretainedValue()
 
         this.inputReportCallback(Data(bytes: report, count: reportLength))
     }
@@ -59,13 +59,13 @@ public class PointerDevice {
     }
 }
 
-extension PointerDevice: Equatable {
-    public static func == (lhs: PointerDevice, rhs: PointerDevice) -> Bool {
+extension InputDevice: Equatable {
+    public static func == (lhs: InputDevice, rhs: InputDevice) -> Bool {
         lhs.client == rhs.client
     }
 }
 
-extension PointerDevice: Hashable {
+extension InputDevice: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(client)
     }
@@ -73,7 +73,7 @@ extension PointerDevice: Hashable {
 
 // MARK: Product and vendor information
 
-public extension PointerDevice {
+public extension InputDevice {
     var product: String? {
         client.getProperty(kIOHIDProductKey)
     }
@@ -113,9 +113,23 @@ public extension PointerDevice {
     var buttonCount: Int? {
         client.getProperty(kIOHIDPointerButtonCountKey)
     }
+
+    var locationID: Int? {
+        client.getProperty(kIOHIDLocationIDKey)
+    }
+
+    var isPointerDevice: Bool {
+        confirmsTo(usagePage: kHIDPage_GenericDesktop, usage: kHIDUsage_GD_Mouse) ||
+        confirmsTo(usagePage: kHIDPage_GenericDesktop, usage: kHIDUsage_GD_Pointer)
+    }
+
+    var isKeyDevice: Bool {
+        confirmsTo(usagePage: kHIDPage_GenericDesktop, usage: kHIDUsage_GD_Keyboard) ||
+        confirmsTo(usagePage: kHIDPage_GenericDesktop, usage: kHIDUsage_GD_Keypad)
+    }
 }
 
-extension PointerDevice: CustomStringConvertible {
+extension InputDevice: CustomStringConvertible {
     public var description: String {
         String(format: "%@ (VID=%@, PID=%@)", name, vendorIDString, productIDString)
     }
@@ -123,7 +137,7 @@ extension PointerDevice: CustomStringConvertible {
 
 // MARK: Pointer resolution and acceleration
 
-public extension PointerDevice {
+public extension InputDevice {
     /**
      Indicates the pointer resolution.
      The lower the value is, the faster the pointer moves.
@@ -194,7 +208,7 @@ public extension PointerDevice {
 
 // MARK: Observe input events
 
-extension PointerDevice {
+extension InputDevice {
     private func inputValueCallback(_ value: IOHIDValue) {
         for (_, callback) in observations.inputValue {
             callback(self, value)
@@ -212,7 +226,7 @@ extension PointerDevice {
 
 // MARK: Observe input reports
 
-extension PointerDevice {
+extension InputDevice {
     private func inputReportCallback(_ report: Data) {
         for (_, callback) in observations.inputReport {
             callback(self, report)
@@ -240,8 +254,12 @@ extension PointerDevice {
 
 // MARK: Utilities
 
-public extension PointerDevice {
-    func confirmsTo(_ usagePage: Int, _ usage: Int) -> Bool {
+public extension InputDevice {
+    func confirmsTo(usagePage: Int, usage: Int) -> Bool {
         IOHIDServiceClientConformsTo(client, UInt32(usagePage), UInt32(usage)) != 0
+    }
+
+    func confirmsTo(locationID: Int) -> Bool {
+        self.locationID == locationID
     }
 }

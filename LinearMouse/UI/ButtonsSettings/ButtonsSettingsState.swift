@@ -36,6 +36,15 @@ extension ButtonsSettingsState {
             scheme.buttons.switchPrimaryButtonAndSecondaryButtons = newValue
         }
     }
+    
+    var mapKeyboardKeysToMouseButtons: Bool {
+        get {
+            mergedScheme.buttons.mapKeyboardKeysToMouseButtons ?? false
+        }
+        set {
+            scheme.buttons.mapKeyboardKeysToMouseButtons = newValue
+        }
+    }
 
     var clickDebouncingEnabled: Bool {
         get {

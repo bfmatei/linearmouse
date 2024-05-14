@@ -31,6 +31,20 @@ class MouseEventView: EventView {
 
         return (modifiers + ["<button \(mouseButton.rawValue)>"]).joined(separator: "+")
     }
+    
+    var deltaXX: Int64? {
+        guard let deltaX = Int64(exactly: event.getIntegerValueField(.mouseEventDeltaX)) else {
+            return nil
+        }
+        return deltaX
+    }
+    
+    var deltaYY: Int64? {
+        guard let deltaY = Int64(exactly: event.getIntegerValueField(.mouseEventDeltaY)) else {
+            return nil
+        }
+        return deltaY
+    }
 
     var sourcePid: pid_t? {
         let pid = pid_t(event.getIntegerValueField(.eventSourceUnixProcessID))

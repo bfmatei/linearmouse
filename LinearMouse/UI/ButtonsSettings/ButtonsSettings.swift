@@ -11,6 +11,8 @@ struct ButtonsSettings: View {
 
                 SwitchPrimaryAndSecondaryButtonsSection()
 
+                MapKeyboardKeysToMouseButtonsSection()
+
                 ClickDebouncingSection()
 
                 ButtonMappingsSection()

@@ -5,7 +5,7 @@ import Defaults
 import Foundation
 import ObservationToken
 import os.log
-import PointerKit
+import InputKit
 
 class Device {
     private static let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "Device")
@@ -25,7 +25,7 @@ class Device {
     ]
 
     private weak var manager: DeviceManager?
-    private let device: PointerDevice
+    private let device: InputDevice
 
     private var removed = false
 
@@ -38,7 +38,7 @@ class Device {
 
     private var lastButtonStates: UInt8 = 0
 
-    init(_ manager: DeviceManager, _ device: PointerDevice) {
+    init(_ manager: DeviceManager, _ device: InputDevice) {
         self.manager = manager
         self.device = device
 
@@ -103,6 +103,10 @@ extension Device {
         device.buttonCount
     }
 
+    var locationID: Int? {
+        device.locationID
+    }
+
     enum Category {
         case mouse, trackpad
     }
@@ -118,7 +122,7 @@ extension Device {
                 return .mouse
             }
         }
-        if device.confirmsTo(kHIDPage_Digitizer, kHIDUsage_Dig_TouchPad) {
+        if device.confirmsTo(usagePage: kHIDPage_Digitizer, usage: kHIDUsage_Dig_TouchPad) {
             return .trackpad
         }
         return .mouse
@@ -202,7 +206,7 @@ extension Device {
         restorePointerAcceleration()
     }
 
-    private func inputValueCallback(_ device: PointerDevice, _ value: IOHIDValue) {
+    private func inputValueCallback(_ device: InputDevice, _ value: IOHIDValue) {
         if verbosedLoggingOn {
             os_log("Received input value from: %{public}@: %{public}@", log: Self.log, type: .info,
                    String(describing: device), String(describing: value))
@@ -251,7 +255,7 @@ extension Device {
                usage)
     }
 
-    private func inputReportCallback(_ device: PointerDevice, _ report: Data) {
+    private func inputReportCallback(_ device: InputDevice, _ report: Data) {
         if verbosedLoggingOn {
             let reportHex = report.map { String(format: "%02X", $0) }.joined(separator: " ")
             os_log("Received input report from: %{public}@: %{public}@", log: Self.log, type: .info,
@@ -287,6 +291,18 @@ extension Device {
             event.post(tap: .cghidEventTap)
         }
         lastButtonStates = buttonStates
+    }
+
+    func getInputDevices() -> [InputDevice] {
+        guard manager != nil else {
+            return []
+        }
+
+        guard self.device.locationID != nil else {
+            return []
+        }
+
+        return manager!.inputDevicesFromLocationID(self.device.locationID!)
     }
 }
 

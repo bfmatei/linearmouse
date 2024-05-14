@@ -5,16 +5,16 @@ import AppKit
 import Combine
 import Foundation
 import os.log
-import PointerKit
+import InputKit
 
 class DeviceManager: ObservableObject {
     static let shared = DeviceManager()
 
     private static let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "DeviceManager")
 
-    private let manager = PointerDeviceManager()
+    private let manager = InputDeviceManager()
 
-    private var pointerDeviceToDevice = [PointerDevice: Device]()
+    private var inputDeviceToDevice = [InputDevice: Device]()
     @Published var devices: [Device] = []
 
     @Published var lastActiveDeviceRef: WeakRef<Device>?
@@ -117,12 +117,15 @@ class DeviceManager: ObservableObject {
         )
     }
 
-    private func deviceAdded(_: PointerDeviceManager, _ pointerDevice: PointerDevice) {
-        let device = Device(self, pointerDevice)
+    private func deviceAdded(_: InputDeviceManager, _ inputDevice: InputDevice) {
+        guard inputDevice.isPointerDevice else { return }
+
+        let device = Device(self, inputDevice)
 
         objectWillChange.send()
 
-        pointerDeviceToDevice[pointerDevice] = device
+        inputDeviceToDevice[inputDevice] = device
+
         devices.append(device)
 
         os_log("Device added: %{public}@",
@@ -132,8 +135,10 @@ class DeviceManager: ObservableObject {
         updatePointerSpeed(for: device)
     }
 
-    private func deviceRemoved(_: PointerDeviceManager, _ pointerDevice: PointerDevice) {
-        guard let device = pointerDeviceToDevice[pointerDevice] else { return }
+    private func deviceRemoved(_: InputDeviceManager, _ inputDevice: InputDevice) {
+        guard inputDevice.isPointerDevice else { return }
+
+        guard let device = inputDeviceToDevice[inputDevice] else { return }
         device.markRemoved()
 
         objectWillChange.send()
@@ -142,7 +147,7 @@ class DeviceManager: ObservableObject {
             lastActiveDeviceRef = nil
         }
 
-        pointerDeviceToDevice.removeValue(forKey: pointerDevice)
+        inputDeviceToDevice.removeValue(forKey: inputDevice)
         devices.removeAll { $0 == device }
 
         os_log("Device removed: %{public}@",
@@ -154,14 +159,10 @@ class DeviceManager: ObservableObject {
     ///
     /// It seems that extenal Trackpads do not trigger to `IOHIDDevice`'s inputValueCallback.
     /// That's why we need to observe events from `DeviceManager` too.
-    private func eventReceived(_: PointerDeviceManager, _ pointerDevice: PointerDevice, _ event: IOHIDEvent) {
-        guard let device = pointerDeviceToDevice[pointerDevice] else {
-            return
-        }
+    private func eventReceived(_: InputDeviceManager, _ inputDevice: InputDevice, _ event: IOHIDEvent) {
+        guard let device = inputDeviceToDevice[inputDevice] else { return }
 
-        guard IOHIDEventGetType(event) == kIOHIDEventTypeScroll else {
-            return
-        }
+        guard IOHIDEventGetType(event) == kIOHIDEventTypeScroll else { return }
 
         let scrollX = IOHIDEventGetFloatValue(event, kIOHIDEventFieldScrollX)
         let scrollY = IOHIDEventGetFloatValue(event, kIOHIDEventFieldScrollY)
@@ -181,21 +182,24 @@ class DeviceManager: ObservableObject {
         }
     }
 
-    func deviceFromCGEvent(_ cgEvent: CGEvent) -> Device? {
-        // Issue: https://github.com/linearmouse/linearmouse/issues/677#issuecomment-1938208542
-        guard ![.flagsChanged, .keyDown, .keyUp].contains(cgEvent.type) else {
-            return lastActiveDeviceRef?.value
-        }
-
+    func inputDeviceFromCGEvent(_ cgEvent: CGEvent) -> InputDevice? {
         guard let ioHIDEvent = CGEventCopyIOHIDEvent(cgEvent) else {
+            return nil
+        }
+
+        return manager.inputDeviceFromIOHIDEvent(ioHIDEvent)
+    }
+
+    func deviceFromCGEvent(_ cgEvent: CGEvent) -> Device? {
+        guard let inputDevice = inputDeviceFromCGEvent(cgEvent) else {
             return lastActiveDeviceRef?.value
         }
 
-        guard let pointerDevice = manager.pointerDeviceFromIOHIDEvent(ioHIDEvent) else {
-            return lastActiveDeviceRef?.value
-        }
+        return devices.first(where: { $0.locationID == inputDevice.locationID }) ?? lastActiveDeviceRef?.value
+    }
 
-        return pointerDeviceToDevice[pointerDevice]
+    func inputDevicesFromLocationID(_ locationID: Int) -> [InputDevice] {
+        manager.inputDevicesFromLocationID(locationID)
     }
 
     func updatePointerSpeed() {
